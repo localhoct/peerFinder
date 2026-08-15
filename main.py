@@ -11,9 +11,15 @@ def clean(name):
     return re.sub(r'[^a-zA-Z0-9_-]', '_', name)
 
 
+def get_peer_subnets(asn):
+    url = f'https://bgp.he.net/{asn}'
+    print('Fetching:', url)
+    html = safe_get(url).text
+    return extract_subnets(html)
+
+
 def save_file(peer, subnets):
-    country = 'UNKNOWN'
-    folder = os.path.join(OUT, country)
+    folder = os.path.join(OUT, 'UNKNOWN')
     os.makedirs(folder, exist_ok=True)
 
     filename = clean(peer['name'] + '_' + peer['asn']) + '.txt'
@@ -23,22 +29,25 @@ def save_file(peer, subnets):
         for subnet in subnets:
             f.write(subnet + '\n')
 
-    print('Saved:', path)
+    print('Saved:', path, 'subnets:', len(subnets))
 
 
 def main():
     print('Fetching Cloudflare peers...')
 
     html = safe_get(URL).text
-
     peers = extract_peers(html)
-    subnets = extract_subnets(html)
 
     print('Peers found:', len(peers))
-    print('Subnets found:', len(subnets))
+
+    os.makedirs(OUT, exist_ok=True)
 
     for peer in peers:
-        save_file(peer, subnets)
+        subnets = get_peer_subnets(peer['asn'])
+        if subnets:
+            save_file(peer, subnets)
+        else:
+            print('No prefixes:', peer['asn'])
 
 
 if __name__ == '__main__':
