@@ -1,6 +1,5 @@
 from scraper import safe_get
-from parser import extract_asns, extract_subnets
-from bs4 import BeautifulSoup
+from parser import extract_peers, extract_subnets
 import os
 import re
 
@@ -12,26 +11,34 @@ def clean(name):
     return re.sub(r'[^a-zA-Z0-9_-]', '_', name)
 
 
-def save_file(country, peer, subnets):
+def save_file(peer, subnets):
+    country = 'UNKNOWN'
     folder = os.path.join(OUT, country)
     os.makedirs(folder, exist_ok=True)
-    path = os.path.join(folder, clean(peer) + '.txt')
-    with open(path, 'w') as f:
+
+    filename = clean(peer['name'] + '_' + peer['asn']) + '.txt'
+    path = os.path.join(folder, filename)
+
+    with open(path, 'w', encoding='utf-8') as f:
         for subnet in subnets:
             f.write(subnet + '\n')
+
+    print('Saved:', path)
 
 
 def main():
     print('Fetching Cloudflare peers...')
+
     html = safe_get(URL).text
-    peers = extract_asns(html)
+
+    peers = extract_peers(html)
     subnets = extract_subnets(html)
-    print(f'Peers found: {len(peers)}')
-    print(f'Subnets found: {len(subnets)}')
-    os.makedirs(OUT, exist_ok=True)
+
+    print('Peers found:', len(peers))
+    print('Subnets found:', len(subnets))
+
     for peer in peers:
-        save_file('UNKNOWN', peer, subnets)
-        print('Saved:', peer)
+        save_file(peer, subnets)
 
 
 if __name__ == '__main__':
