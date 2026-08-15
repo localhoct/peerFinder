@@ -2,7 +2,6 @@ from bs4 import BeautifulSoup
 import ipaddress
 import re
 
-
 AS_RE = re.compile(r"AS(\d+)", re.I)
 
 
@@ -56,14 +55,22 @@ def representative_ip(subnets):
 
 
 def has_cloudflare_link(html, cloudflare_asn="AS13335"):
-    """Return True only when the HE graph page contains a link to Cloudflare AS13335."""
+    """Verify direct BGP adjacency from HE's IPv4/IPv6 peer tables."""
     soup = BeautifulSoup(html, "html.parser")
     target = cloudflare_asn.upper().replace(" ", "")
+    for table in soup.find_all("table"):
+        if "PEERS" not in table.get_text(" ", strip=True).upper():
+            continue
+        for row in table.find_all("tr"):
+            row_text = row.get_text(" ", strip=True).upper().replace(" ", "")
+            if re.search(rf"\b{re.escape(target)}\b", row_text):
+                return True
+    return False
 
-    for tag in soup.find_all(["a", "area"]):
-        href = (tag.get("href") or "").upper().replace(" ", "")
-        text = tag.get_text(" ", strip=True).upper().replace(" ", "")
-        if target in href or target in text:
-            return True
 
-    return target in soup.get_text(" ", strip=True).upper().replace(" ", "")
+def country_of_origin(html):
+    """Extract HE's Country of Origin value for an ASN page."""
+    soup = BeautifulSoup(html, "html.parser")
+    text = soup.get_text(" ", strip=True)
+    match = re.search(r"Country\s+of\s+Origin\s*:\s*([A-Za-z][A-Za-z .,'()&-]*?)(?=\s+(?:Internet Exchanges|Prefixes Originated|Prefixes Announced|RPKI|IPs Originated|AS Paths Observed|Average AS Path Length)\b|$)", text, re.I)
+    return match.group(1).strip() if match else "UNKNOWN"
