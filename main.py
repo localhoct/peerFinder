@@ -1,6 +1,5 @@
 from scraper import safe_get
-from parser import extract_peers, extract_subnets, split_subnets, representative_ip, has_cloudflare_link
-from geo import country_from_ip
+from parser import extract_peers, extract_subnets, split_subnets, has_cloudflare_link, country_of_origin
 import argparse
 import os
 import re
@@ -17,24 +16,28 @@ def clean(name):
 def parse_countries(value):
     if not value:
         return None
-    return {item.strip().upper() for item in value.split(",") if item.strip()}
+    return {item.strip().casefold() for item in value.split(",") if item.strip()}
 
 
-def get_peer_subnets(asn):
+def get_peer_data(asn):
     url = f"https://bgp.he.net/{asn}"
-    print("Checking graph:", url)
+    print("Checking peer graph/tables:", url)
     html = safe_get(url).text
 
+    # HE's peer tables are the authoritative HTML representation of the
+    # observed BGP adjacency. Do not accept an ASN merely because AS13335
+    # appears elsewhere in the page.
     if not has_cloudflare_link(html, CLOUDFLARE_ASN):
-        print(f"Skipped {asn}: no graph link to {CLOUDFLARE_ASN}")
+        print(f"Skipped {asn}: no observed peer link to {CLOUDFLARE_ASN}")
         return None
 
-    print(f"Accepted {asn}: graph link to {CLOUDFLARE_ASN} found")
-    return extract_subnets(html)
+    country = country_of_origin(html)
+    subnets = extract_subnets(html)
+    return country, subnets
 
 
 def save_file(peer, subnets, country):
-    folder = os.path.join(OUT, country)
+    folder = os.path.join(OUT, clean(country))
     os.makedirs(folder, exist_ok=True)
     filename = clean(peer["name"] + "_" + peer["asn"]) + ".txt"
     path = os.path.join(folder, filename)
@@ -46,44 +49,39 @@ def save_file(peer, subnets, country):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Collect Cloudflare peer prefixes with an optional country filter."
+        description="Collect prefixes only from ASNs directly observed as Cloudflare peers on HE."
     )
     parser.add_argument(
         "--country", "-c",
-        help="Only save peers whose detected country is in this comma-separated ISO list, e.g. US or US,DE,NL"
-    )
-    parser.add_argument(
-        "--all-countries",
-        action="store_true",
-        help="Save all detected countries (default behavior)"
+        help="Only save peers from these countries, comma-separated. Examples: Germany or Germany,Netherlands"
     )
     args = parser.parse_args()
-    allowed_countries = parse_countries(args.country)
+    allowed = parse_countries(args.country)
 
     print(f"Fetching Cloudflare peers ({CLOUDFLARE_ASN})...")
     html = safe_get(URL).text
     peers = extract_peers(html)
     print("Peers found:", len(peers))
-    print(f"Graph filter: peer must link to {CLOUDFLARE_ASN}")
-    if allowed_countries:
-        print("Country filter:", ", ".join(sorted(allowed_countries)))
+    print("Adjacency filter: peer must list AS13335 in its HE peer tables")
+    if allowed:
+        print("Country filter:", args.country)
     os.makedirs(OUT, exist_ok=True)
 
     for peer in peers:
         try:
-            subnets = get_peer_subnets(peer["asn"])
-            if subnets is None or not subnets:
+            data = get_peer_data(peer["asn"])
+            if data is None:
+                continue
+            country, subnets = data
+            if allowed and country.casefold() not in allowed:
+                print(f"Filtered {peer['asn']}: country={country}")
+                continue
+            if not subnets:
+                print("No prefixes:", peer["asn"])
                 continue
 
             ipv4, ipv6 = split_subnets(subnets)
-            ip = representative_ip(subnets)
-            country = country_from_ip(ip) if ip else "UNKNOWN"
-            print(f"  IPv4: {len(ipv4)} | IPv6: {len(ipv6)} | Country: {country}")
-
-            if allowed_countries and country.upper() not in allowed_countries:
-                print(f"Filtered {peer['asn']}: country {country} not selected")
-                continue
-
+            print(f"Accepted {peer['asn']}: country={country} | IPv4={len(ipv4)} | IPv6={len(ipv6)}")
             save_file(peer, subnets, country)
         except Exception as exc:
             print("Error:", peer["asn"], exc)
