@@ -16,8 +16,9 @@ def extract_peers(html):
         match = AS_RE.search(" ".join(cols))
         if not match:
             continue
-        name = cols[1] if len(cols) > 1 else "AS" + match.group(1)
-        peers.append({"asn": "AS" + match.group(1), "name": name})
+        asn = "AS" + match.group(1)
+        name = cols[1] if len(cols) > 1 else asn
+        peers.append({"asn": asn, "name": name})
     unique = {}
     for peer in peers:
         unique[peer["asn"]] = peer
@@ -52,3 +53,17 @@ def representative_ip(subnets):
         if network.version == 6:
             return str(network.network_address + 1)
     return None
+
+
+def has_cloudflare_link(html, cloudflare_asn="AS13335"):
+    """Return True only when the HE graph page contains a link to Cloudflare AS13335."""
+    soup = BeautifulSoup(html, "html.parser")
+    target = cloudflare_asn.upper().replace(" ", "")
+
+    for tag in soup.find_all(["a", "area"]):
+        href = (tag.get("href") or "").upper().replace(" ", "")
+        text = tag.get_text(" ", strip=True).upper().replace(" ", "")
+        if target in href or target in text:
+            return True
+
+    return target in soup.get_text(" ", strip=True).upper().replace(" ", "")
