@@ -1,55 +1,55 @@
 # peerFinder
 
-Ø§Ø¨Ø²Ø§Ø± Ù¾Ø§ÛŒØªÙˆÙ† Ø¨Ø±Ø§ÛŒ Ø¬Ù…Ø¹â€ŒØ¢ÙˆØ±ÛŒ prefixÙ‡Ø§ÛŒ PeerÙ‡Ø§ÛŒ Cloudflare (`AS13335`) Ø§Ø² BGP.HE Ùˆ Ø§Ø¹ØªØ¨Ø§Ø±Ø³Ù†Ø¬ÛŒ Ø§Ø®ØªÛŒØ§Ø±ÛŒ Ø¢Ù†â€ŒÙ‡Ø§ Ø¨Ø§ Ø¯Ø§Ø¯Ù‡â€ŒÙ‡Ø§ÛŒ Ø¹Ù…ÙˆÙ…ÛŒ RIPE RIS/RPKI.
+`peerFinder` collects prefixes from Cloudflare (`AS13335`) peers listed on BGP.HE. Its optional verification mode confirms each result against public RIPE RIS/RPKI data.
 
-## Ú†Ù‡ Ú†ÛŒØ²ÛŒ Ø§Ø¹ØªØ¨Ø§Ø±Ø³Ù†Ø¬ÛŒ Ù…ÛŒâ€ŒØ´ÙˆØ¯ØŸ
+## Verification model
 
-- **HE direct peer**: ØµÙØ­Ù‡Ù” ASN Ø¯Ø± BGP.HE Ø¨Ø§ÛŒØ¯ `AS13335` Ø±Ø§ Ø¯Ø± Ø¬Ø¯ÙˆÙ„â€ŒÙ‡Ø§ÛŒ Peer Ø®ÙˆØ¯ Ù†Ø´Ø§Ù† Ø¯Ù‡Ø¯.
-- **RIS observed neighbour**: RIPEstat Ø¨Ø±Ø±Ø³ÛŒ Ù…ÛŒâ€ŒØ´ÙˆØ¯ ØªØ§ Ù…Ø¹Ù„ÙˆÙ… Ø´ÙˆØ¯ RISØŒ Ø¢Ù† ASN Ø±Ø§ Ù‡Ù…Ø³Ø§ÛŒÙ‡Ù” BGP `AS13335` Ù…Ø´Ø§Ù‡Ø¯Ù‡ Ú©Ø±Ø¯Ù‡ Ø§Ø³Øª. Ù†Ø¨ÙˆØ¯Ù† Ø¢Ù† Ø¨Ù‡â€ŒÙ…Ø¹Ù†Ø§ÛŒ Ù†Ø¨ÙˆØ¯Ù† Ù‚Ø·Ø¹ÛŒ peer Ù†ÛŒØ³ØªØ› collectorÙ‡Ø§ Ø¯ÛŒØ¯ Ù…Ø­Ø¯ÙˆØ¯ÛŒ Ø§Ø² Ø§ÛŒÙ†ØªØ±Ù†Øª Ø¯Ø§Ø±Ù†Ø¯.
-- **RPKI**: Ø¨Ø±Ø§ÛŒ Ù†Ù…ÙˆÙ†Ù‡â€ŒØ§ÛŒ Ø§Ø² prefixÙ‡Ø§ÛŒ Ù‡Ø± peerØŒ ÙˆØ¶Ø¹ÛŒØª `valid`ØŒ `invalid_asn`ØŒ `invalid_length` ÛŒØ§ `unknown` Ø¨Ø±Ø±Ø³ÛŒ Ù…ÛŒâ€ŒØ´ÙˆØ¯. RPKI ÙÙ‚Ø· ASN Ù…Ø¨Ø¯Ø£ prefix Ø±Ø§ ØªØ£ÛŒÛŒØ¯ Ù…ÛŒâ€ŒÚ©Ù†Ø¯ØŒ Ù†Ù‡ Ú©Ù„ AS path ÛŒØ§ Ø±Ø§Ø¨Ø·Ù‡Ù” ØªØ¬Ø§Ø±ÛŒ peer.
+- **HE direct peer**: the ASN page on BGP.HE must list `AS13335` in its peer tables.
+- **RIS observed neighbour**: RIPEstat is queried to see whether RIS collectors observe the ASN as a BGP neighbour of `AS13335`. A missing observation is not proof that a peer does not exist: collectors have incomplete Internet visibility.
+- **RPKI**: a bounded sample of prefixes per peer receives a `valid`, `invalid_asn`, `invalid_length`, or `unknown` origin-validation status. RPKI validates the prefix origin ASN only; it does not validate the full AS path or commercial peering relationship.
 
-Ø¬Ø²Ø¦ÛŒØ§Øª Ø§ÛŒÙ† Ú©Ù†ØªØ±Ù„â€ŒÙ‡Ø§ Ø¯Ø± `output/verification.json` Ø°Ø®ÛŒØ±Ù‡ Ù…ÛŒâ€ŒØ´ÙˆØ¯.
+The report is written to `output/verification.json`.
 
-## Ù†ØµØ¨
+## Install
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## Ø§Ø¬Ø±Ø§
+## Run
 
-Ø§Ø¬Ø±Ø§ÛŒ Ø³Ø±ÛŒØ¹ Ø¨Ø§ Ø´Ø´ worker Ù‡Ù…â€ŒØ²Ù…Ø§Ù†:
+Fast collection uses six concurrent workers by default:
 
 ```bash
 python main.py
 ```
 
-ÙÛŒÙ„ØªØ± Ú©Ø´ÙˆØ± Ùˆ Ú¯Ø²Ø§Ø±Ø´ BGP/RPKI:
+Filter by country and write a BGP/RPKI report:
 
 ```bash
 python main.py --country Germany,Netherlands --verify-bgp
 ```
 
-Ú¯Ø²ÛŒÙ†Ù‡â€ŒÙ‡Ø§ÛŒ Ú©Ø§Ø±Ø§ÛŒÛŒ:
+Tune concurrency and RPKI sampling:
 
 ```bash
 python main.py --workers 8 --verify-bgp --rpki-limit 10 --rpki-workers 8
 ```
 
-- `--workers`: ØªØ¹Ø¯Ø§Ø¯ Ø¯Ø±Ø®ÙˆØ§Ø³Øªâ€ŒÙ‡Ø§ÛŒ Ù‡Ù…â€ŒØ²Ù…Ø§Ù† Ø¨Ù‡ BGP.HEØŒ Ù¾ÛŒØ´â€ŒÙØ±Ø¶ `6`.
-- `--rpki-limit`: ØªØ¹Ø¯Ø§Ø¯ prefixÙ‡Ø§ÛŒ Ø¨Ø±Ø±Ø³ÛŒâ€ŒØ´Ø¯Ù‡ Ø¨Ø±Ø§ÛŒ Ù‡Ø± peer. Ù¾ÛŒØ´â€ŒÙØ±Ø¶ `10` Ø§Ø³ØªØ› `0` Ø¨Ø±Ø±Ø³ÛŒ RPKI Ø±Ø§ ØºÛŒØ±ÙØ¹Ø§Ù„ Ù…ÛŒâ€ŒÚ©Ù†Ø¯.
-- `--rpki-workers`: ØªØ¹Ø¯Ø§Ø¯ Ø¯Ø±Ø®ÙˆØ§Ø³Øªâ€ŒÙ‡Ø§ÛŒ Ù‡Ù…â€ŒØ²Ù…Ø§Ù† RPKIØŒ Ù¾ÛŒØ´â€ŒÙØ±Ø¶ `8`.
+- `--workers`: concurrent BGP.HE page fetches; default `6`.
+- `--rpki-limit`: prefixes checked per accepted peer; default `10`. Set `0` to skip RPKI requests.
+- `--rpki-workers`: concurrent RPKI API requests; default `8`.
 
-Ù¾Ø§Ø³Ø®â€ŒÙ‡Ø§ÛŒ HTTP Ø¨Ù‡â€ŒÙ…Ø¯Øª Û²Û´ Ø³Ø§Ø¹Øª Ø¯Ø± `cache/` Ù†Ú¯Ù‡â€ŒØ¯Ø§Ø±ÛŒ Ù…ÛŒâ€ŒØ´ÙˆÙ†Ø¯. Ù†Ø®Ø³ØªÛŒÙ† Ø§Ø¬Ø±Ø§ Ø´Ø¨Ú©Ù‡â€ŒØ§ÛŒ Ø§Ø³ØªØ› Ø§Ø¬Ø±Ø§Ù‡Ø§ÛŒ Ø¨Ø¹Ø¯ÛŒ Ù…Ø¹Ù…ÙˆÙ„Ø§Ù‹ Ø³Ø±ÛŒØ¹â€ŒØªØ±Ù†Ø¯.
+HTTP responses are cached for 24 hours in `cache/`. A warm-cache run is substantially faster.
 
-## Ø®Ø±ÙˆØ¬ÛŒ
+## Output
 
 ```text
 output/
-â”œâ”€â”€ Germany/
-â”‚   â””â”€â”€ EXAMPLE_AS64500.txt
-â””â”€â”€ verification.json
+|-- Germany/
+|   `-- EXAMPLE_AS64500.txt
+`-- verification.json
 ```
 
-Ù‡Ø± ÙØ§ÛŒÙ„ peer ÙÙ‚Ø· prefixÙ‡Ø§ Ø±Ø§ Ø¯Ø§Ø±Ø¯. `verification.json` Ø´Ø§Ù…Ù„ Ù…Ù†Ø¨Ø¹ØŒ Ø²Ù…Ø§Ù† ØªÙˆÙ„ÛŒØ¯ØŒ ÙˆØ¶Ø¹ÛŒØª Ù…Ø´Ø§Ù‡Ø¯Ù‡Ù” RIS Ùˆ Ù†ØªØ§ÛŒØ¬ Ù†Ù…ÙˆÙ†Ù‡Ù” RPKI Ø§Ø³Øª.
+Each peer file contains prefixes only. `verification.json` records the sources, generation time, RIS observation status, and sampled RPKI results.
 
