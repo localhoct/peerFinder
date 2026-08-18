@@ -1,72 +1,55 @@
 # peerFinder
 
-ابزار پایتون برای جمع آوری Peer های Cloudflare AS13335 از bgp.he.net.
+Ø§Ø¨Ø²Ø§Ø± Ù¾Ø§ÛŒØªÙˆÙ† Ø¨Ø±Ø§ÛŒ Ø¬Ù…Ø¹â€ŒØ¢ÙˆØ±ÛŒ prefixÙ‡Ø§ÛŒ PeerÙ‡Ø§ÛŒ Cloudflare (`AS13335`) Ø§Ø² BGP.HE Ùˆ Ø§Ø¹ØªØ¨Ø§Ø±Ø³Ù†Ø¬ÛŒ Ø§Ø®ØªÛŒØ§Ø±ÛŒ Ø¢Ù†â€ŒÙ‡Ø§ Ø¨Ø§ Ø¯Ø§Ø¯Ù‡â€ŒÙ‡Ø§ÛŒ Ø¹Ù…ÙˆÙ…ÛŒ RIPE RIS/RPKI.
 
-## امکانات
+## Ú†Ù‡ Ú†ÛŒØ²ÛŒ Ø§Ø¹ØªØ¨Ø§Ø±Ø³Ù†Ø¬ÛŒ Ù…ÛŒâ€ŒØ´ÙˆØ¯ØŸ
 
-- دریافت اطلاعات Peer ها
-- ذخیره subnet ها به صورت فایل txt
-- دسته بندی بر اساس کشور
-- نام فایل برابر نام Peer
-- دارای cache و retry برای جلوگیری از درخواست های زیاد
+- **HE direct peer**: ØµÙØ­Ù‡Ù” ASN Ø¯Ø± BGP.HE Ø¨Ø§ÛŒØ¯ `AS13335` Ø±Ø§ Ø¯Ø± Ø¬Ø¯ÙˆÙ„â€ŒÙ‡Ø§ÛŒ Peer Ø®ÙˆØ¯ Ù†Ø´Ø§Ù† Ø¯Ù‡Ø¯.
+- **RIS observed neighbour**: RIPEstat Ø¨Ø±Ø±Ø³ÛŒ Ù…ÛŒâ€ŒØ´ÙˆØ¯ ØªØ§ Ù…Ø¹Ù„ÙˆÙ… Ø´ÙˆØ¯ RISØŒ Ø¢Ù† ASN Ø±Ø§ Ù‡Ù…Ø³Ø§ÛŒÙ‡Ù” BGP `AS13335` Ù…Ø´Ø§Ù‡Ø¯Ù‡ Ú©Ø±Ø¯Ù‡ Ø§Ø³Øª. Ù†Ø¨ÙˆØ¯Ù† Ø¢Ù† Ø¨Ù‡â€ŒÙ…Ø¹Ù†Ø§ÛŒ Ù†Ø¨ÙˆØ¯Ù† Ù‚Ø·Ø¹ÛŒ peer Ù†ÛŒØ³ØªØ› collectorÙ‡Ø§ Ø¯ÛŒØ¯ Ù…Ø­Ø¯ÙˆØ¯ÛŒ Ø§Ø² Ø§ÛŒÙ†ØªØ±Ù†Øª Ø¯Ø§Ø±Ù†Ø¯.
+- **RPKI**: Ø¨Ø±Ø§ÛŒ Ù†Ù…ÙˆÙ†Ù‡â€ŒØ§ÛŒ Ø§Ø² prefixÙ‡Ø§ÛŒ Ù‡Ø± peerØŒ ÙˆØ¶Ø¹ÛŒØª `valid`ØŒ `invalid_asn`ØŒ `invalid_length` ÛŒØ§ `unknown` Ø¨Ø±Ø±Ø³ÛŒ Ù…ÛŒâ€ŒØ´ÙˆØ¯. RPKI ÙÙ‚Ø· ASN Ù…Ø¨Ø¯Ø£ prefix Ø±Ø§ ØªØ£ÛŒÛŒØ¯ Ù…ÛŒâ€ŒÚ©Ù†Ø¯ØŒ Ù†Ù‡ Ú©Ù„ AS path ÛŒØ§ Ø±Ø§Ø¨Ø·Ù‡Ù” ØªØ¬Ø§Ø±ÛŒ peer.
 
-## نصب در Linux
+Ø¬Ø²Ø¦ÛŒØ§Øª Ø§ÛŒÙ† Ú©Ù†ØªØ±Ù„â€ŒÙ‡Ø§ Ø¯Ø± `output/verification.json` Ø°Ø®ÛŒØ±Ù‡ Ù…ÛŒâ€ŒØ´ÙˆØ¯.
+
+## Ù†ØµØ¨
 
 ```bash
-sudo apt update
-sudo apt install python3 python3-pip git -y
-
-git clone https://github.com/localhoct/peerFinder.git
-cd peerFinder
-
-pip3 install -r requirements.txt
-
-python3 main.py
+pip install -r requirements.txt
 ```
 
-## نصب در Termux Android
+## Ø§Ø¬Ø±Ø§
+
+Ø§Ø¬Ø±Ø§ÛŒ Ø³Ø±ÛŒØ¹ Ø¨Ø§ Ø´Ø´ worker Ù‡Ù…â€ŒØ²Ù…Ø§Ù†:
 
 ```bash
-pkg update
-pkg install python git -y
-
-git clone https://github.com/localhoct/peerFinder.git
-cd peerFinder
-
-pip install -r requirements.txt
-
 python main.py
 ```
 
-## Output
-
-فعلا پوشه output در مخزن قرار ندارد.
-
-بعد از اجرا ساختار خروجی به شکل زیر خواهد بود:
-
-```
-output/
- ├── US/
- │    └── PEER.txt
- ├── DE/
- │    └── PEER.txt
- └── NL/
-      └── PEER.txt
-```
-
-هر فایل فقط شامل subnet ها خواهد بود.
-
-## Push کردن تغییرات شخصی
+ÙÛŒÙ„ØªØ± Ú©Ø´ÙˆØ± Ùˆ Ú¯Ø²Ø§Ø±Ø´ BGP/RPKI:
 
 ```bash
-git add .
-git commit -m "update peer data"
-git push origin main
+python main.py --country Germany,Netherlands --verify-bgp
 ```
 
-## توسعه آینده
+Ú¯Ø²ÛŒÙ†Ù‡â€ŒÙ‡Ø§ÛŒ Ú©Ø§Ø±Ø§ÛŒÛŒ:
 
-- GeoIP country detection
-- IPv4/IPv6 separation
-- JSON export
-- Scheduled updates
+```bash
+python main.py --workers 8 --verify-bgp --rpki-limit 10 --rpki-workers 8
+```
+
+- `--workers`: ØªØ¹Ø¯Ø§Ø¯ Ø¯Ø±Ø®ÙˆØ§Ø³Øªâ€ŒÙ‡Ø§ÛŒ Ù‡Ù…â€ŒØ²Ù…Ø§Ù† Ø¨Ù‡ BGP.HEØŒ Ù¾ÛŒØ´â€ŒÙØ±Ø¶ `6`.
+- `--rpki-limit`: ØªØ¹Ø¯Ø§Ø¯ prefixÙ‡Ø§ÛŒ Ø¨Ø±Ø±Ø³ÛŒâ€ŒØ´Ø¯Ù‡ Ø¨Ø±Ø§ÛŒ Ù‡Ø± peer. Ù¾ÛŒØ´â€ŒÙØ±Ø¶ `10` Ø§Ø³ØªØ› `0` Ø¨Ø±Ø±Ø³ÛŒ RPKI Ø±Ø§ ØºÛŒØ±ÙØ¹Ø§Ù„ Ù…ÛŒâ€ŒÚ©Ù†Ø¯.
+- `--rpki-workers`: ØªØ¹Ø¯Ø§Ø¯ Ø¯Ø±Ø®ÙˆØ§Ø³Øªâ€ŒÙ‡Ø§ÛŒ Ù‡Ù…â€ŒØ²Ù…Ø§Ù† RPKIØŒ Ù¾ÛŒØ´â€ŒÙØ±Ø¶ `8`.
+
+Ù¾Ø§Ø³Ø®â€ŒÙ‡Ø§ÛŒ HTTP Ø¨Ù‡â€ŒÙ…Ø¯Øª Û²Û´ Ø³Ø§Ø¹Øª Ø¯Ø± `cache/` Ù†Ú¯Ù‡â€ŒØ¯Ø§Ø±ÛŒ Ù…ÛŒâ€ŒØ´ÙˆÙ†Ø¯. Ù†Ø®Ø³ØªÛŒÙ† Ø§Ø¬Ø±Ø§ Ø´Ø¨Ú©Ù‡â€ŒØ§ÛŒ Ø§Ø³ØªØ› Ø§Ø¬Ø±Ø§Ù‡Ø§ÛŒ Ø¨Ø¹Ø¯ÛŒ Ù…Ø¹Ù…ÙˆÙ„Ø§Ù‹ Ø³Ø±ÛŒØ¹â€ŒØªØ±Ù†Ø¯.
+
+## Ø®Ø±ÙˆØ¬ÛŒ
+
+```text
+output/
+â”œâ”€â”€ Germany/
+â”‚   â””â”€â”€ EXAMPLE_AS64500.txt
+â””â”€â”€ verification.json
+```
+
+Ù‡Ø± ÙØ§ÛŒÙ„ peer ÙÙ‚Ø· prefixÙ‡Ø§ Ø±Ø§ Ø¯Ø§Ø±Ø¯. `verification.json` Ø´Ø§Ù…Ù„ Ù…Ù†Ø¨Ø¹ØŒ Ø²Ù…Ø§Ù† ØªÙˆÙ„ÛŒØ¯ØŒ ÙˆØ¶Ø¹ÛŒØª Ù…Ø´Ø§Ù‡Ø¯Ù‡Ù” RIS Ùˆ Ù†ØªØ§ÛŒØ¬ Ù†Ù…ÙˆÙ†Ù‡Ù” RPKI Ø§Ø³Øª.
+
