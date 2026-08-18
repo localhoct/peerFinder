@@ -41,7 +41,7 @@ def _session():
 
 
 def safe_get(url, *, params=None, timeout=30, delay=(0.15, 0.4)):
-    """Fetch a URL safely, with an optional small polite delay before a cache miss."""
+    """Fetch a URL safely and space each worker's uncached requests."""
     session = _session()
     response = session.get(url, params=params, timeout=timeout)
     if not getattr(response, "from_cache", False) and delay:
