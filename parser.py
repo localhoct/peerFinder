@@ -62,7 +62,7 @@ def has_cloudflare_link(html, cloudflare_asn="AS13335"):
         if "PEERS" not in table.get_text(" ", strip=True).upper():
             continue
         for row in table.find_all("tr"):
-            row_text = row.get_text(" ", strip=True).upper().replace(" ", "")
+            row_text = row.get_text(" ", strip=True).upper()
             if re.search(rf"\b{re.escape(target)}\b", row_text):
                 return True
     return False
